@@ -1,0 +1,44 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+  pull_request:
+
+jobs:
+  test-sbt:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      TESTCONTAINERS_HOST_OVERRIDE: localhost
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: ['21', '25']
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          cache: 'sbt'
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+      - name: Install scala-native dependencies
+        run: sudo apt-get install clang libstdc++-12-dev libgc-dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test (SBT)
+        run: ./sbt ci-test
+      - name: Upload Results
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: test-results-sbt-${{ matrix.java-version }}
+          path: |
+            **/target/test-reports/
+            **/target/streams/test/
+            **/target/scalafmt/
