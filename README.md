@@ -32,7 +32,7 @@ import scala.util.Try
 type Async = Continuations.Label[Unit]
 
 /** For semantically blocking on the result of a `Future`. */
-def await[T, R](future: Future[T])(using Async): T = {
+def await[T](future: Future[T])(using Async): T = {
   val result: Try[T] = 
     Continuations.suspend[Try[T], Unit] { sus =>
       future.onComplete { value =>
@@ -46,8 +46,7 @@ def await[T, R](future: Future[T])(using Async): T = {
 def runToFuture[T](body: Async ?=> T): Future[T] = {
   val p = Promise[T]()
   val _ = Continuations.boundary[Unit] {
-    val r = body
-    p.success(r)
+    p.complete(Try(body))
   }
   p.future
 }
@@ -57,7 +56,13 @@ def runBlocking[T](body: Async ?=> T): T = {
   import java.util.concurrent.CountDownLatch
   var result: Option[Try[T]] = None
   val latch = new CountDownLatch(1)
-
+  // The result of this `boundary` call can be synchronous, but it's
+  // not guaranteed (platform-specific), hence the synchronization
+  // needed via `CountDownLatch` here. Thankfully, the type-system
+  // forces us to have `Unit` as its result, otherwise we 
+  // couldn't initiate async tasks. Obviously, `runBlocking`
+  // cannot be implemented on top of ScalaJS (but there we can
+  // work with Future/Promise at the end-of-the-world).
   Continuations.boundary[Unit] {
     result = Some(Try(body))
     latch.countDown()
@@ -70,11 +75,11 @@ def runBlocking[T](body: Async ?=> T): T = {
   val f1 = Future(1 + 1) // executed async
   val r1 = await(f1) // semantic blocking
 
-  val f2 = Future(10 * 2) // executed async
+  val f2 = Future(20 * 2) // executed async
   val r2 = await(f2) // semantic blocking
 
   val sum = r1 + r2
-  println(s"Sum: $sum")
+  println(s"Answer: $sum")
 }
 ```
 
