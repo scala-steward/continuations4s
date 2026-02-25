@@ -42,7 +42,7 @@ def await[T](future: Future[T])(using Async): T = {
   result.get
 }
 
-/** Utility for interop - can compose a `Future` via delimited continuations. */
+/** End-of-the world execution, to use for ScalaJS in `main`. */
 def runToFuture[T](body: Async ?=> T): Future[T] = {
   val p = Promise[T]()
   val _ = Continuations.boundary[Unit] {
@@ -51,7 +51,7 @@ def runToFuture[T](body: Async ?=> T): Future[T] = {
   p.future
 }
 
-/** End-of-the world execution, to use in `main`. */
+/** End-of-the world execution, to use in `main` for JVM/Native. */
 def runBlocking[T](body: Async ?=> T): T = {
   import java.util.concurrent.CountDownLatch
   var result: Option[Try[T]] = None
