@@ -11,4 +11,4 @@ addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.20.2")
 addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.5.10")
 
 // https://github.com/typelevel/sbt-tpolecat/issues/291
-libraryDependencies += "org.typelevel" %% "scalac-options" % "0.1.9"
+libraryDependencies += "org.typelevel" %% "scalac-options" % "0.1.10"
