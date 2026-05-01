@@ -72,7 +72,7 @@ lazy val continuations4s = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     name := "continuations4s",
     libraryDependencies ++= Seq(
       // Testing
-      "org.scalameta" %%% "munit" % "1.2.2" % Test
+      "org.scalameta" %%% "munit" % "1.2.4" % Test
     ),
     testFrameworks += new TestFramework("munit.Framework"),
     Compile / doc / scalacOptions ++= Seq(
